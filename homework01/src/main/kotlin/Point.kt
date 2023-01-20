@@ -10,8 +10,7 @@ interface Point : DimentionAware
  */
 class DefaultPoint(private vararg val coords: Int) : Point {
 
-    override val ndim: Int
-        get() = coords.size
+    override val ndim = coords.size
 
     override fun dim(i: Int): Int = coords[i]
 

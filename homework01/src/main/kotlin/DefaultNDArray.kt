@@ -113,6 +113,11 @@ class DefaultNDArray private constructor(private val defaultVal: Int, private va
     }
 
     override fun view(): NDArray {
+        val res: NDArray by this
+        return res;
+    };
+
+    private operator fun getValue(ignore1: Any?, ignore2: Any?): NDArray {
         return this
     }
 
@@ -141,19 +146,18 @@ class DefaultNDArray private constructor(private val defaultVal: Int, private va
     override fun add(other: NDArray) {
         if (ndim == other.ndim) {
             var startPoint: Point = DefaultPoint(*IntArray(ndim) { 0 })
-            var nextPoint: Point
-            do {
-                arr[startPoint] = at(startPoint) + other.at(startPoint)
-                nextPoint = createNextPoint(startPoint)
+            while (true) {
+                val nextPoint = createNextPoint(startPoint)
+                arr[startPoint] = at(startPoint) + other.at(startPoint);
                 if (nextPoint == startPoint) {
                     break
                 }
-                startPoint = nextPoint
-            } while (true)
+                startPoint = nextPoint;
+            }
         } else if (ndim - 1 == other.ndim && ndim >= 2) {
             for (i in 0 until ndim - 1) {
                 if (dim(i) != other.dim(i)) {
-                    throw NDArrayException.IllegalPointDimensionException();
+                    throw NDArrayException.IllegalPointDimensionException(dim(i), other.dim(i));
                 }
             }
 
@@ -170,7 +174,7 @@ class DefaultNDArray private constructor(private val defaultVal: Int, private va
             } while (true)
 
         } else {
-            throw NDArrayException.IllegalPointDimensionException();
+            throw NDArrayException.IllegalPointDimensionException(ndim, other.ndim);
         }
     }
 
@@ -210,9 +214,9 @@ class DefaultNDArray private constructor(private val defaultVal: Int, private va
     override fun dim(i: Int): Int = shape.dim(i)
 
     private fun validatePoint(point: Point) {
-        if (point.ndim != shape.ndim) throw NDArrayException.IllegalPointDimensionException()
+        if (point.ndim != shape.ndim) throw NDArrayException.IllegalPointDimensionException(point.ndim, shape.ndim)
         for (i in 0 until point.ndim) {
-            if (point.dim(i) >= shape.dim(i)) {
+            if (point.dim(i) >= shape.dim(i) || point.dim(i) < 0 || shape.dim(i) < 0) {
                 throw NDArrayException.IllegalPointCoordinateException()
             }
         }
@@ -221,7 +225,8 @@ class DefaultNDArray private constructor(private val defaultVal: Int, private va
 
 }
 
-sealed class NDArrayException : Exception() {
+sealed class NDArrayException(reason: String = "") : IllegalArgumentException(reason) {
     class IllegalPointCoordinateException : NDArrayException()
-    class IllegalPointDimensionException : NDArrayException()
+    class IllegalPointDimensionException(firstValue: Int, secondValue: Int) :
+        NDArrayException(String.format("Unexpected dimensions %d and %d", firstValue, secondValue))
 }

@@ -22,22 +22,18 @@ class DefaultShape(private vararg val dimentions: Int) : Shape {
     }
 
     private fun checkNotPositive() {
-        if (dimentions.any { el -> el <= 0 }) {
-            val res = dimentions.first { el -> el <= 0 }
-            val resInd = dimentions.indexOf(res)
-            throw ShapeArgumentException.NonPositiveDimensionException(resInd, res)
+        dimentions.forEachIndexed { index, item ->
+            if (item <= 0) {
+                throw ShapeArgumentException.NonPositiveDimensionException(index, item)
+            }
         }
     }
 
-    override val ndim: Int
-        get() = dimentions.size
+    override val ndim = dimentions.size
 
     override fun dim(i: Int): Int = dimentions[i]
 
-    override val size: Int
-        get() = dimentions.reduce { res, current -> res * current }
-
-
+    override val size = dimentions.reduce { res, current -> res * current }
 }
 
 sealed class ShapeArgumentException(reason: String = "") : IllegalArgumentException(reason) {
